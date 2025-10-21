@@ -43,6 +43,8 @@ local Utilities = {
 
 local ESPObjects = {}
 local NoclipConnection = nil
+local AimlockConnection = nil
+local Minimized = false
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "YevHub_" .. HttpService:GenerateGUID(false):sub(1,8)
@@ -77,18 +79,48 @@ local Title = Instance.new("TextLabel")
 Title.Parent = Header
 Title.BackgroundTransparency = 1
 Title.Position = UDim2.new(0, 15, 0, 0)
-Title.Size = UDim2.new(1, -30, 1, 0)
+Title.Size = UDim2.new(1, -60, 1, 0)
 Title.Font = Enum.Font.GothamBold
 Title.Text = "YEV HUB v2.2"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 16
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
+local MinimizeButton = Instance.new("TextButton")
+MinimizeButton.Parent = Header
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+MinimizeButton.BorderSizePixel = 0
+MinimizeButton.Position = UDim2.new(1, -70, 0.5, -8)
+MinimizeButton.Size = UDim2.new(0, 20, 0, 16)
+MinimizeButton.Font = Enum.Font.GothamBold
+MinimizeButton.Text = "_"
+MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeButton.TextSize = 14
+
+local MinimizeCorner = Instance.new("UICorner")
+MinimizeCorner.CornerRadius = UDim.new(0, 4)
+MinimizeCorner.Parent = MinimizeButton
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Parent = Header
+CloseButton.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+CloseButton.BorderSizePixel = 0
+CloseButton.Position = UDim2.new(1, -40, 0.5, -8)
+CloseButton.Size = UDim2.new(0, 20, 0, 16)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 100, 100)
+CloseButton.TextSize = 12
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 4)
+CloseCorner.Parent = CloseButton
+
 local StatusIndicator = Instance.new("Frame")
 StatusIndicator.Parent = Header
 StatusIndicator.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
 StatusIndicator.BorderSizePixel = 0
-StatusIndicator.Position = UDim2.new(1, -20, 0.5, -5)
+StatusIndicator.Position = UDim2.new(1, -100, 0.5, -5)
 StatusIndicator.Size = UDim2.new(0, 10, 0, 10)
 
 local StatusCorner = Instance.new("UICorner")
@@ -100,6 +132,7 @@ Content.Parent = MainFrame
 Content.BackgroundTransparency = 1
 Content.Position = UDim2.new(0, 0, 0, 45)
 Content.Size = UDim2.new(1, 0, 1, -45)
+Content.Name = "Content"
 
 local StatusPanel = Instance.new("Frame")
 StatusPanel.Parent = Content
@@ -166,6 +199,36 @@ ControlsPanel.Size = UDim2.new(1, -20, 0, 300)
 local ControlsCorner = Instance.new("UICorner")
 ControlsCorner.CornerRadius = UDim.new(0, 6)
 ControlsCorner.Parent = ControlsPanel
+
+local function ToggleMinimize()
+    Minimized = not Minimized
+    if Minimized then
+        Content.Visible = false
+        MainFrame.Size = UDim2.new(0, 320, 0, 40)
+        MinimizeButton.Text = "+"
+    else
+        Content.Visible = true
+        MainFrame.Size = UDim2.new(0, 320, 0, 450)
+        MinimizeButton.Text = "_"
+    end
+end
+
+MinimizeButton.MouseButton1Click:Connect(ToggleMinimize)
+
+CloseButton.MouseButton1Click:Connect(function()
+    if AimlockConnection then
+        AimlockConnection:Disconnect()
+        AimlockConnection = nil
+    end
+    if NoclipConnection then
+        NoclipConnection:Disconnect()
+        NoclipConnection = nil
+    end
+    for _, player in pairs(Players:GetPlayers()) do
+        RemoveESP(player)
+    end
+    ScreenGui:Destroy()
+end)
 
 local function CreateToggle(name, position, utility, callback)
     local ToggleFrame = Instance.new("Frame")
@@ -483,7 +546,6 @@ local function GetClosestPlayer()
     return closest
 end
 
-local AimlockConnection
 local function AimlockLoop()
     if not Utilities.Aimlock.Enabled then return end
     
@@ -605,6 +667,7 @@ end
 print("🚀 YEV HUB v2.2 CARREGADO!")
 print("📌 CONTROLES:")
 print("   F - Aimlock | G - Noclip | H - ESP")
+print("   _ - Minimizar | X - Fechar")
 print("🎯 CONFIGURAÇÕES AIMLOCK:")
 print("   - Escolha onde mirar: Head, Torso, HumanoidRootPart ou None")
 print("   - Ajuste distância máxima: " .. Utilities.Aimlock.MaxDistance)
